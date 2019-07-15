@@ -207,7 +207,7 @@ def send_email(rEmail, fname, lname):
 def read_csv(i):
     global email, fname,lname
     email_add = pd.read_csv(filename)
-    length = len(email_add.index) 
+    length = len(email_add.index)
     k = open_wind(i)
     k.title = ('Sending Emails...')
     k.attributes('-topmost',1)
