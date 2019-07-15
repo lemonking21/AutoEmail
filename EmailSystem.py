@@ -1,15 +1,11 @@
 import re
-from tkinter import Button, Menu, Toplevel, Label, Text, PanedWindow , VERTICAL, END, messagebox,Scrollbar, Tk, ttk
+from tkinter import Button, Menu, Toplevel, Label, Text, PanedWindow , VERTICAL, END, messagebox, Tk, ttk
 from tkinter.filedialog import askopenfilename
 import smtplib
 import pandas as pd
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-import os.path
 import datetime
-import time
 
 #############################################################
 #############################################################
@@ -187,7 +183,7 @@ def push_sub(text, i, email):
 #############################################################
 def send_email(rEmail, fname, lname):
     myemail = 'TestAutomated12@gmail.com'
-    mypassword = '1234567_AB'# your email password 
+    mypassword = '1234567_AB'# your email password
     subject='[Auto Generated] ... '
     with open('AutoMessage.txt', 'r') as file:
         msg = file.read()
