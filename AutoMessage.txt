@@ -1,0 +1,9 @@
+[AUTO GENERATED] Warning this is an auto generated Notification
+
+If you believe this email was recieved in error please disregard it or contact us using the information below.
+
+link = www.google.com/
+
+<div id="demobox">
+This is a demo box to illustrate the code given in thesitewizard.com's tutorial on creating coloured boxes.
+</div>
