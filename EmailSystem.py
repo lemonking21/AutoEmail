@@ -2,6 +2,7 @@ import re
 from tkinter import Button, Menu, Toplevel, Label, Text, PanedWindow , VERTICAL, END, messagebox, Tk, ttk
 from tkinter.filedialog import askopenfilename
 import smtplib
+import numpy
 import pandas as pd
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -16,7 +17,7 @@ import datetime
 #############################################################
 #############################################################
 #Global Varibles
-filename, fname, lname, email = '', '' ,'' ,''
+filename, fname, lname, email, my_email, my_password, message, subject = '', '' ,'' ,'', '','','',''
 #############################################################
 def file_update(i):
     name = select_file()
@@ -28,7 +29,7 @@ def file_update(i):
 # Template for a the main window
 #############################################################
 def main_win(i):
-    i.title('Auto Email')
+    i.title('Mass Emailer')
     p = PanedWindow(i, orient= VERTICAL, height = 10, width = 30)
     p.pack()
     label = Label(p, text = 'Select a file with the clients firstname, lastname and email address')
@@ -48,6 +49,27 @@ def open_wind(i):
     i_win.attributes('-topmost',1)
     return i_win
 #############################################################
+
+def email_gui(i):
+    email_k = open_wind(i)
+    panel = PanedWindow(email_k, orient= VERTICAL, height = 10, width = 30)
+    panel.pack()
+    username_bx = Text(panel, height = 1, width = 30)
+    username_bx.pack(expand = 1)
+    password_bx = Text(panel, height = 1, width = 30)
+    password_bx.pack(expand = 1)
+    subbtn = Button(panel, text = 'Submit', command = lambda: set_my_Email(username_bx,password_bx))
+    subbtn.pack()
+
+def set_my_Email(emailN,passwordN):
+    global my_email
+    my_email = emailN.get('1.0',END)
+    set_my_password(passwordN)
+
+def set_my_password(passwordN):
+    global my_password
+    my_password = passwordN.get('1.0',END)
+
 #############################################################
 # Template for the menu bar
 #############################################################
@@ -57,6 +79,8 @@ def win_menu(i):
     file= Menu(menu)
     view = Menu(menu)
     about = Menu(menu)
+    email = Menu(menu)
+    message = Menu(menu)
 
     file.add_command(label = 'exit', command = i.destroy)
     menu.add_cascade(label = 'File', menu = file)
@@ -67,6 +91,12 @@ def win_menu(i):
 
     about.add_command(label = 'Info',command = lambda:about_win(i))
     menu.add_cascade(label = 'About', menu = about)
+
+    email.add_command(label = 'Email',command = lambda:email_gui(i))
+    menu.add_cascade(label = 'Email', menu = email)
+
+    message.add_command(label = 'Message',command = lambda:user_message(i))
+    menu.add_cascade(label = 'Message', menu = message)
 #############################################################
 #############################################################
 # The pop up about window on the menu bar
@@ -75,7 +105,7 @@ def about_win(i):
     about_w = open_wind(i)
     about_w.geometry('400x150')
     about  = Text(about_w, height = 300, width = 300)
-    about.insert('1.0','Created on:7/15/2019\nLast Updated: 7/15/2019\n Created to enable a fast reliable way to email multiple clients\nVersion Number: 0.5.0 \nInstructions: \n1. Select a CSV file that contains the recipents \n2. First Name, Last Name, and Email address\n3. click send emails and wait.')
+    about.insert('1.0','Created on:7/15/2019\nLast Updated: 7/15/2019\n Created to enable a fast reliable way to email multiple clients\nVersion Number: 0.5.0 \nInstructions: \n1. Select a CSV file that contains the recipents \n2. First Name, Last Name, and Email address\n3. click send emails and wait. \nWarning: This program can only be used to send the daily limited as set by your email provider\n**********************\n**\nGmail accounts = 500 send emails a day\n**\nOutlook = 300 send emails a day\n**\nOutlook business acoount = 10000 send emails a day')
     about.config(state= 'disable')
     about.pack()
     close_btn(about_w)
@@ -160,7 +190,7 @@ def getFilename():
 # Function to check if the email is in the current format
 #############################################################
 def checkEmail(email,fname, lname , i):
-    format_email='^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-z]{2,4})$'
+    format_email=r'^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-z]{2,4})$'
     match = re.match(format_email, str(email))
     if match == None:
         email.delete('1.0', END)
@@ -177,21 +207,39 @@ def push_sub(text, i, email):
 #############################################################
 # Setting up and sending an email
 #############################################################
+def user_message(i):
+    message_w = open_wind(i)
+    subL = Label(message_w, text ='Subject Line:')
+    subL.pack()
+    subject_u  = Text(message_w, height = 1, width = 50)
+    subject_u.pack()
+    mess_L =Label(message_w, text ='Message:')
+    mess_L.pack()
+    message_u  = Text(message_w, height = 10, width = 50)
+    message_u.pack()
+    subBtn = Button(message_w, text ='Submit', command = lambda:set_user_message_n_subject(message_u,subject_u))
+    subBtn.pack()
+
+def set_user_message_n_subject(messageN,subjectN):
+    global message, subject
+    message = messageN.get('1.0',END)
+    subject = subjectN.get('1.0',END)
+
 def send_email(rEmail, fname, lname):
-    myemail = 'TestAutomated12@gmail.com'#needs to be swapped for teh permant email and password##############################################################################################
-    mypassword = '1234567_AB'# your email password
-    subject='[Auto Generated] ... '
-    with open('AutoMessage.txt', 'r') as file:
-        msg = file.read()
-    msg = 'Dear ' + fname+' ' + lname+ ',\n'+ msg + '\nTime completed: ' + str(datetime.datetime.now())
+    global my_email, my_password, message, subject
+    myemail = my_email
+    mypassword = my_password
+    sub='[Auto Generated] ... ' + subject
+
+    msg = 'Dear ' + fname+' ' + lname+ ',\n'+ message + '\nTime completed: ' + str(datetime.datetime.now())
 
     message = MIMEMultipart()
     message['From'] = myemail
     message['To'] = rEmail
-    message['Subject']= subject
+    message['Subject']= sub
     message.attach(MIMEText(msg, 'plain'))
 
-    server = smtplib.SMTP('smtp.gmail.com', 587) # if 587 doesn't work try 25 or 465 // office365 or gmail
+    server = smtplib.SMTP('smtp.gmail.com', 25) # if 587 doesn't work try 25 or 465 // office365 or gmail
     server.starttls()
     server.login(myemail, mypassword)
     text= message.as_string()
@@ -209,26 +257,20 @@ def read_csv(i):
     k.geometry('100x20')
     k.title = ('Sending Emails...')
     k.attributes('-topmost',1)
-    pb = ttk.Progressbar(k,orient ="horizontal",length = 100, mode ="determinate")
-    pb["maximum"] = 100
-    pb["value"] = 0
     k.update_idletasks()
-    pb.pack()
-    pb_update = (100 / email_length)
-    send_email_check(email_add,pb,pb_update,email_length,i, k)
+    send_email_check(email_add,email_length,i, k)
     messagebox.showinfo('Finished' , 'All emails have been sent!')
 #############################################################
 #############################################################
 # Loop to send the email through all recipents
 #############################################################
-def send_email_check(email_add, pb,ab, length,i, k):
+def send_email_check(email_add, length,i, k):
     for x in range(length):
-        set_fname(email_add['Name First'][x])
-        set_lname(email_add['Name Last'][x])
-        set_email(email_add['Email'][x])
+        set_fname(email_add['First Name'][x])
+        set_lname(email_add['Last Name'][x])
+        set_email(email_add['E-mail Address'][x])
         checkEmail(email,fname, lname, i)
         k.update_idletasks()
-        pb["value"] = pb["value"] + ab
     k.destroy()
 #############################################################
 #############################################################
